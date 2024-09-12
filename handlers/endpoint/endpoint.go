@@ -1,12 +1,8 @@
 package endpoint
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/Sincerelyzl/larb-on-me/common/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/idontknowtoobrother/practice_go_hexagonal/constraints"
 	"github.com/idontknowtoobrother/practice_go_hexagonal/services/endpoint"
 )
 
@@ -21,24 +17,43 @@ func NewEndpointHandler(srv endpoint.EndpointService) *endpointHandler {
 }
 
 func (h *endpointHandler) GetEndpoints(c *gin.Context) {
+	uuid := c.Query("uuid")
+	if uuid != "" {
+		endpoint, err := h.srv.GetEndpoint(uuid)
+		if err != nil {
+			res := utils.NewErrorResponse(500, err.Error())
+			c.JSON(res.StatusCode, res)
+			return
+		}
+		res := utils.NewSuccessResponse(200, "endpoint found.", endpoint)
+		c.JSON(res.StatusCode, res)
+		return
+	}
+
 	endpoints, err := h.srv.GetEndpoints()
 	if err != nil {
-		utils.ErrorResponse(c, 500, err)
+		res := utils.NewErrorResponse(500, err.Error())
+		c.JSON(res.StatusCode, res)
 		return
 	}
-	utils.SuccessResponse(c, 200, endpoints)
+	res := utils.NewSuccessResponse(200, "all endpoints.", endpoints)
+	c.JSON(res.StatusCode, res)
 }
 
-func (h *endpointHandler) GetEndpoint(c *gin.Context) {
-	uuid := c.Param("uuid")
-	if uuid == "" {
-		utils.ErrorResponse(c, 400, errors.New(fmt.Sprintf(constraints.ErrInvalidParameter, "uuid")))
+func (h *endpointHandler) CreateEndpoint(c *gin.Context) {
+	var req endpoint.CreateEndpoinRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		res := utils.NewErrorResponse(400, err.Error())
+		c.JSON(res.StatusCode, res)
 		return
 	}
-	endpoint, err := h.srv.GetEndpoint(uuid)
+
+	endpoint, err := h.srv.CreateEndpoint(req)
 	if err != nil {
-		utils.ErrorResponse(c, 500, err)
+		res := utils.NewErrorResponse(500, err.Error())
+		c.JSON(res.StatusCode, res)
 		return
 	}
-	utils.SuccessResponse(c, 200, endpoint)
+	res := utils.NewSuccessResponse(200, "endpoint created.", endpoint)
+	c.JSON(res.StatusCode, res)
 }

@@ -15,6 +15,7 @@ type EndpointRepository interface {
 	Create(Endpoint) (*Endpoint, error)
 	UpdateByUuid(primitive.Binary, Endpoint) (*Endpoint, error)
 	DeleteByUuid(primitive.Binary) error
+	GetByPath(string) (*Endpoint, error)
 }
 
 type Endpoint struct {
@@ -38,6 +39,15 @@ func NewEndpointRepository(ctx context.Context, collection *mongo.Collection) En
 		ctx:        ctx,
 		collection: collection,
 	}
+}
+
+func (r *endpointRepository) GetByPath(path string) (*Endpoint, error) {
+	var endpoint Endpoint
+	err := r.collection.FindOne(r.ctx, bson.M{"path": path}).Decode(&endpoint)
+	if err != nil {
+		return nil, err
+	}
+	return &endpoint, nil
 }
 
 func (r *endpointRepository) GetAll() ([]Endpoint, error) {

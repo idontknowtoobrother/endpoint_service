@@ -8,11 +8,14 @@ import (
 	"github.com/idontknowtoobrother/practice_go_hexagonal/constraints"
 	"github.com/idontknowtoobrother/practice_go_hexagonal/repositories/endpoint"
 	"github.com/idontknowtoobrother/practice_go_hexagonal/utils"
+	"github.com/xyproto/randomstring"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type EndpointService interface {
 	GetEndpoints() ([]EndpointResponse, error)
 	GetEndpoint(uuid string) (*EndpointResponse, error)
+	CreateEndpoint(req CreateEndpoinRequest) (*EndpointResponse, error)
 }
 
 type EndpointResponse struct {
@@ -24,6 +27,12 @@ type EndpointResponse struct {
 	UpdatedAt     string `json:"updated_at"`
 	DeletedAt     string `json:"deleted_at"`
 	DeletedReason string `json:"deleted_reason"`
+}
+
+type CreateEndpoinRequest struct {
+	Name       string `json:"name"`
+	Path       string `json:"path"`
+	RedirectTo string `json:"redirect_to",binding:"required"`
 }
 
 type endpointService struct {
@@ -38,13 +47,58 @@ func NewEndpointService(ctx context.Context, repo endpoint.EndpointRepository) E
 	}
 }
 
+func (s *endpointService) CreateEndpoint(req CreateEndpoinRequest) (*EndpointResponse, error) {
+	newUuid, err := utils.NewUuid()
+	if err != nil {
+		return nil, err
+	}
+
+	newPath := randomstring.CookieFriendlyString(16)
+	_, err = s.repo.GetByPath(newPath)
+	for err != mongo.ErrNoDocuments {
+		newPath = randomstring.CookieFriendlyString(16)
+	}
+
+	endpoint := endpoint.Endpoint{
+		Uuid:          newUuid,
+		Name:          req.Name,
+		Path:          req.Path,
+		RedirectTo:    req.RedirectTo,
+		CreatedAt:     utils.TimeNow(),
+		UpdatedAt:     utils.TimeNow(),
+		DeletedAt:     utils.TimeZero(),
+		DeletedReason: "",
+	}
+
+	newEndpoint, err := s.repo.Create(endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	uuidHexString, err := utils.UuidToHexString(newEndpoint.Uuid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &EndpointResponse{
+		Uuid:          uuidHexString,
+		Name:          newEndpoint.Name,
+		Path:          newEndpoint.Path,
+		RedirectTo:    newEndpoint.RedirectTo,
+		CreatedAt:     utils.TimeToString(newEndpoint.CreatedAt),
+		UpdatedAt:     utils.TimeToString(newEndpoint.UpdatedAt),
+		DeletedAt:     utils.TimeToString(newEndpoint.DeletedAt),
+		DeletedReason: newEndpoint.DeletedReason,
+	}, nil
+}
+
 func (s *endpointService) GetEndpoints() ([]EndpointResponse, error) {
 	endpoints, err := s.repo.GetAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var endpointResponses []EndpointResponse
+	endpointResponses := make([]EndpointResponse, 0)
 	for _, endpoint := range endpoints {
 		uuidHexString, err := utils.UuidToHexString(endpoint.Uuid)
 		if err != nil {

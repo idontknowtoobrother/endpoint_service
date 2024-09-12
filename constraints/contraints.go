@@ -1,6 +1,6 @@
 package constraints
 
 var (
-	ErrInvalidParameter       = "invalid parameter, needs: %s"
+	ErrInvalidQuery           = "invalid query, needs: %s"
 	ErrEndpointHasBeenDeleted = "endpoint has been deleted, reason: %s"
 )

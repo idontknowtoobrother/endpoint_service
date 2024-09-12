@@ -13,3 +13,7 @@ func StringToTime(s string) (time.Time, error) {
 func TimeNow() time.Time {
 	return time.Now().UTC()
 }
+
+func TimeZero() time.Time {
+	return time.Time{}
+}

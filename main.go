@@ -2,6 +2,11 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	conn "github.com/idontknowtoobrother/practice_go_hexagonal/connections"
@@ -23,7 +28,28 @@ func main() {
 	// TODO: Implement router and server
 
 	router := gin.Default()
-	router.GET("/endpoints", serviceHandler.GetEndpoints)
-	router.GET("/endpoints/:uuid", serviceHandler.GetEndpoint)
+	apiV1 := router.Group("/api/v1")
+	apiV1.GET("/endpoints", serviceHandler.GetEndpoints)
+
+	// Set up the HTTP server
+	srv := &http.Server{
+		Addr:    ":8000",
+		Handler: router,
+	}
+
+	// Channel to listen for interrupt or terminate signals
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Start the server in a goroutine so it doesn't block
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Wait for the signal
+	<-quit
+	log.Println("shutting down server...")
 
 }
