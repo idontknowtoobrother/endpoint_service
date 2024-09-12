@@ -11,7 +11,7 @@ func StringToTime(s string) (time.Time, error) {
 }
 
 func TimeNow() time.Time {
-	return time.Now().UTC()
+	return time.Now().UTC().Add(7 * time.Hour)
 }
 
 func TimeZero() time.Time {

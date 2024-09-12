@@ -13,7 +13,7 @@ type EndpointRepository interface {
 	GetAll() ([]Endpoint, error)
 	GetByUuid(primitive.Binary) (*Endpoint, error)
 	Create(Endpoint) (*Endpoint, error)
-	UpdateByUuid(primitive.Binary, Endpoint) (*Endpoint, error)
+	UpdateByUuid(primitive.Binary, *Endpoint) (*Endpoint, error)
 	DeleteByUuid(primitive.Binary) error
 	GetByPath(string) (*Endpoint, error)
 }
@@ -25,8 +25,8 @@ type Endpoint struct {
 	RedirectTo    string           `bson:"redirect_to"`
 	CreatedAt     time.Time        `bson:"created_at"`
 	UpdatedAt     time.Time        `bson:"updated_at"`
-	DeletedAt     time.Time        `bson:"deleted_at"`
-	DeletedReason string           `bson:"deleted_reason"`
+	DeletedAt     *time.Time       `bson:"deleted_at"`
+	DeletedReason *string          `bson:"deleted_reason"`
 }
 
 type endpointRepository struct {
@@ -78,12 +78,12 @@ func (r *endpointRepository) Create(endpoint Endpoint) (*Endpoint, error) {
 	return &endpoint, nil
 }
 
-func (r *endpointRepository) UpdateByUuid(uuid primitive.Binary, endpoint Endpoint) (*Endpoint, error) {
-	_, err := r.collection.UpdateOne(r.ctx, bson.M{"uuid": uuid}, endpoint)
+func (r *endpointRepository) UpdateByUuid(uuid primitive.Binary, endpoint *Endpoint) (*Endpoint, error) {
+	_, err := r.collection.UpdateOne(r.ctx, bson.M{"uuid": uuid}, bson.M{"$set": endpoint})
 	if err != nil {
 		return nil, err
 	}
-	return &endpoint, nil
+	return endpoint, nil
 }
 
 func (r *endpointRepository) DeleteByUuid(uuid primitive.Binary) error {
