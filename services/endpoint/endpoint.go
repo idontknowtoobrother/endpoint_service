@@ -7,7 +7,7 @@ import (
 
 	"github.com/idontknowtoobrother/practice_go_hexagonal/constraints"
 	"github.com/idontknowtoobrother/practice_go_hexagonal/repositories/endpoint"
-	"github.com/idontknowtoobrother/practice_go_hexagonal/util"
+	"github.com/idontknowtoobrother/practice_go_hexagonal/utils"
 )
 
 type EndpointService interface {
@@ -46,7 +46,7 @@ func (s *endpointService) GetEndpoints() ([]EndpointResponse, error) {
 
 	var endpointResponses []EndpointResponse
 	for _, endpoint := range endpoints {
-		uuidHexString, err := util.UuidToHexString(endpoint.Uuid)
+		uuidHexString, err := utils.UuidToHexString(endpoint.Uuid)
 		if err != nil {
 			return nil, err
 		}
@@ -56,9 +56,9 @@ func (s *endpointService) GetEndpoints() ([]EndpointResponse, error) {
 			Name:          endpoint.Name,
 			Path:          endpoint.Path,
 			RedirectTo:    endpoint.RedirectTo,
-			CreatedAt:     util.TimeToString(endpoint.CreatedAt),
-			UpdatedAt:     util.TimeToString(endpoint.UpdatedAt),
-			DeletedAt:     util.TimeToString(endpoint.DeletedAt),
+			CreatedAt:     utils.TimeToString(endpoint.CreatedAt),
+			UpdatedAt:     utils.TimeToString(endpoint.UpdatedAt),
+			DeletedAt:     utils.TimeToString(endpoint.DeletedAt),
 			DeletedReason: endpoint.DeletedReason,
 		})
 	}
@@ -67,7 +67,7 @@ func (s *endpointService) GetEndpoints() ([]EndpointResponse, error) {
 }
 
 func (s *endpointService) GetEndpoint(uuid string) (*EndpointResponse, error) {
-	uuidBinary, err := util.HexStringToUuid(uuid)
+	uuidBinary, err := utils.HexStringToUuid(uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (s *endpointService) GetEndpoint(uuid string) (*EndpointResponse, error) {
 		return nil, errors.New(fmt.Sprintf(constraints.ErrEndpointHasBeenDeleted, endpoint.DeletedReason))
 	}
 
-	uuidHexString, err := util.UuidToHexString(endpoint.Uuid)
+	uuidHexString, err := utils.UuidToHexString(endpoint.Uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +91,9 @@ func (s *endpointService) GetEndpoint(uuid string) (*EndpointResponse, error) {
 		Name:          endpoint.Name,
 		Path:          endpoint.Path,
 		RedirectTo:    endpoint.RedirectTo,
-		CreatedAt:     util.TimeToString(endpoint.CreatedAt),
-		UpdatedAt:     util.TimeToString(endpoint.UpdatedAt),
-		DeletedAt:     util.TimeToString(endpoint.DeletedAt),
+		CreatedAt:     utils.TimeToString(endpoint.CreatedAt),
+		UpdatedAt:     utils.TimeToString(endpoint.UpdatedAt),
+		DeletedAt:     utils.TimeToString(endpoint.DeletedAt),
 		DeletedReason: endpoint.DeletedReason,
 	}, nil
 }
